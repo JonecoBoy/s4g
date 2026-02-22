@@ -1,5 +1,8 @@
 {{template "layout.html" .}}
 {{define "content"}}
 <h1>{{.Page.Title}}</h1>
+{{if .Page.Section}}
+<p class="section-badge">Section: {{.Page.Section}}</p>
+{{end}}
 <div class="prose">{{.Page.Body | safeHTML}}</div>
 {{end}}

@@ -22,6 +22,14 @@ type Content struct {
 	Meta map[string]any
 }
 
+// Permalink returns the URL path for the content (e.g. "/blog/post.html").
+func (c Content) Permalink() string {
+	if c.Section == "" {
+		return "/" + c.Slug + ".html"
+	}
+	return "/" + c.Section + "/" + c.Slug + ".html"
+}
+
 // DataSource is the plugin interface for content providers.
 // Implement this to add a new data source (Markdown, SQL, Mongo, REST, …).
 type DataSource interface {
@@ -37,5 +45,7 @@ type Renderer interface {
 	// Name returns a human-readable identifier used in logs and the TUI.
 	Name() string
 	// Render writes output for a single Content item.
-	Render(ctx context.Context, c Content) error
+	// It receives the full list of pages collected from the source to allow
+	// templates to build navigation menus or lists.
+	Render(ctx context.Context, allPages []Content, current Content) error
 }

@@ -40,7 +40,7 @@ func (g *Generator) Build(ctx context.Context) []BuildResult {
 		for _, r := range g.Renderers {
 			br.RendererName = r.Name()
 			for _, p := range pages {
-				if rerr := r.Render(ctx, p); rerr != nil {
+				if rerr := r.Render(ctx, pages, p); rerr != nil {
 					br.Errors = append(br.Errors, fmt.Errorf("renderer %q / page %q: %w", r.Name(), p.Slug, rerr))
 				}
 			}

@@ -14,6 +14,7 @@ import (
 // TemplateData is the data passed into each template execution.
 type TemplateData struct {
 	SiteTitle string
+	Pages     []core.Content
 	Page      core.Content
 }
 
@@ -66,7 +67,7 @@ func (r *Renderer) Init() error {
 // Render implements core.Renderer.
 // It executes the "page.html" template and writes slug.html to OutputDir.
 // When c.Section is set the file is written to OutputDir/<section>/slug.html.
-func (r *Renderer) Render(_ context.Context, c core.Content) error {
+func (r *Renderer) Render(_ context.Context, all []core.Content, c core.Content) error {
 	if r.tmpl == nil {
 		return fmt.Errorf("html renderer: not initialised — call Init() first")
 	}
@@ -89,6 +90,7 @@ func (r *Renderer) Render(_ context.Context, c core.Content) error {
 
 	data := TemplateData{
 		SiteTitle: r.SiteTitle,
+		Pages:     all,
 		Page:      c,
 	}
 

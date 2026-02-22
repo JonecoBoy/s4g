@@ -43,7 +43,7 @@ func TestRender(t *testing.T) {
 	}
 
 	c := core.Content{Slug: "hello", Title: "Hello World", Body: "<p>hi</p>"}
-	if err := r.Render(context.Background(), c); err != nil {
+	if err := r.Render(context.Background(), []core.Content{c}, c); err != nil {
 		t.Fatalf("Render: %v", err)
 	}
 

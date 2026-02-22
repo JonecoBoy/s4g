@@ -131,9 +131,12 @@
     <header>
         <span class="logo">⚡ {{.SiteTitle}}</span>
         <nav>
-            <a href="/home/arch/Dev/s4g/dist/index.html">Home</a>
-            <a href="/home/arch/Dev/s4g/dist/about.html">About</a>
-            <a href="/home/arch/Dev/s4g/dist/notes.html">Notes</a>
+            <a href="/index.html">Home</a>
+            {{range .Pages}}
+            {{if ne .Slug "index"}}
+            <a href="{{.Permalink}}" {{if eq $.Page.Slug .Slug}}class="active" {{end}}>{{.Title}}</a>
+            {{end}}
+            {{end}}
         </nav>
     </header>
     <main>
