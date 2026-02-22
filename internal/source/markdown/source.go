@@ -20,7 +20,7 @@ type FrontMatter struct {
 	Title string         `yaml:"title"`
 	Slug  string         `yaml:"slug"`
 	Tags  []string       `yaml:"tags"`
-	Extra map[string]any `yaml:",inline"`
+	Meta  map[string]any `yaml:",inline"`
 }
 
 // Source is a DataSource that reads *.md files recursively from a directory.
@@ -96,7 +96,7 @@ func (s *Source) Fetch(_ context.Context) ([]core.Content, error) {
 		}
 
 		meta := make(map[string]any)
-		for k, v := range fm.Extra {
+		for k, v := range fm.Meta {
 			meta[k] = v
 		}
 
