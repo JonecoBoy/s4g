@@ -1,0 +1,12 @@
+site:
+  title: "My S4G Site"
+  base_url: "http://localhost:8080"
+
+source:
+  type: markdown
+  content_dir: ./site/content
+
+renderer:
+  type: html
+  template_dir: ./site/templates
+  output_dir: ./dist

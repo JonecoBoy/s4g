@@ -1,0 +1,5 @@
+{{template "layout.html" .}}
+{{define "content"}}
+<h1>{{.Page.Title}}</h1>
+<div class="prose">{{.Page.Body | safeHTML}}</div>
+{{end}}
