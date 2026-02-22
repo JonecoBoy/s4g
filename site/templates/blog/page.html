@@ -12,6 +12,9 @@
         <div class="prose" style="margin-bottom: 1rem;">
             {{.Body | truncate 250 | safeHTML}}
         </div>
+        <pre>{{range .Tags}} {{.}}{{", "}} {{end}} </pre>
+        <pre>{{.Meta.created}}</pre>
+        <pre>{{.Meta.author}}</pre>
         <a href="{{.Permalink}}" style="color: #7c3aed; font-weight: bold; font-size: 0.9rem;">Read more →</a>
     </article>
 </div>

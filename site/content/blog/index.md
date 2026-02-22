@@ -1,6 +1,9 @@
 ---
 title: Blog Section
 slug: index
+tags: ["JavaScript", "Markdown"]
+author: "Arch"
+created: "2026-02-22"
 ---
 # Blog
 

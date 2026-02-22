@@ -19,6 +19,7 @@ import (
 type FrontMatter struct {
 	Title string         `yaml:"title"`
 	Slug  string         `yaml:"slug"`
+	Tags  []string       `yaml:"tags"`
 	Extra map[string]any `yaml:",inline"`
 }
 
@@ -82,6 +83,12 @@ func (s *Source) Fetch(_ context.Context) ([]core.Content, error) {
 			slug = strings.TrimSuffix(d.Name(), ".md")
 		}
 
+		// Default tags to empty slice if not provided.
+		tags := fm.Tags
+		if tags == nil {
+			tags = []string{}
+		}
+
 		// Render Markdown body to HTML.
 		var buf bytes.Buffer
 		if err := goldmark.Convert(body, &buf); err != nil {
@@ -98,6 +105,7 @@ func (s *Source) Fetch(_ context.Context) ([]core.Content, error) {
 			Section: section,
 			Title:   fm.Title,
 			Body:    buf.String(),
+			Tags:    fm.Tags,
 			Meta:    meta,
 		})
 
@@ -111,7 +119,7 @@ func (s *Source) Fetch(_ context.Context) ([]core.Content, error) {
 	return pages, nil
 }
 
-// parseFrontMatter splits a raw Markdown file into its YAML front-matter and body.
+// parseFrontMatter splits a raw Markdown file into its YAML front-matter (metadata) and body.
 func parseFrontMatter(raw []byte) (FrontMatter, []byte, error) {
 	var fm FrontMatter
 

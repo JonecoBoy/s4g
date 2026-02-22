@@ -17,6 +17,8 @@ type Content struct {
 	Title string
 	// Body is the pre-rendered HTML body of the page.
 	Body string
+	// Tags is a list of tags associated with the content.
+	Tags []string
 	// Meta holds any additional key/value pairs from the source
 	// (front-matter fields, DB columns, JSON keys, etc.).
 	Meta map[string]any
