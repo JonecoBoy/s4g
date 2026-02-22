@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/user/s4g/internal/core"
 )
@@ -27,7 +28,11 @@ type Renderer struct {
 	// SiteTitle is injected into every page's template data.
 	SiteTitle string
 
-	tmpl *template.Template
+	// base is the universal template set from TemplateDir root.
+	base *template.Template
+	// cache stores cloned templates with section-specific overrides.
+	cache map[string]*template.Template
+	mu    sync.RWMutex
 }
 
 // New creates a new HTMLRenderer. Call Init before Render.
@@ -36,6 +41,7 @@ func New(templateDir, outputDir, siteTitle string) *Renderer {
 		TemplateDir: templateDir,
 		OutputDir:   outputDir,
 		SiteTitle:   siteTitle,
+		cache:       make(map[string]*template.Template),
 	}
 }
 
@@ -44,19 +50,17 @@ func (r *Renderer) Name() string { return "html" }
 
 // funcMap provides template helper functions.
 var funcMap = template.FuncMap{
-	// safeHTML marks a string as safe HTML, bypassing auto-escaping.
-	// Only use with content that has already been sanitised (e.g. from Goldmark).
 	"safeHTML": func(s string) template.HTML { return template.HTML(s) }, //nolint:gosec
 }
 
-// Init parses the template files. Must be called once before Render.
+// Init parses the universal template files. Must be called once before Render.
 func (r *Renderer) Init() error {
 	pattern := filepath.Join(r.TemplateDir, "*.html")
-	tmpl, err := template.New("").Funcs(funcMap).ParseGlob(pattern)
+	tmpl, err := template.New("base").Funcs(funcMap).ParseGlob(pattern)
 	if err != nil {
-		return fmt.Errorf("html renderer: parse templates %q: %w", pattern, err)
+		return fmt.Errorf("html renderer: parse universal templates %q: %w", pattern, err)
 	}
-	r.tmpl = tmpl
+	r.base = tmpl
 
 	if err := os.MkdirAll(r.OutputDir, 0755); err != nil {
 		return fmt.Errorf("html renderer: create output dir %q: %w", r.OutputDir, err)
@@ -64,12 +68,58 @@ func (r *Renderer) Init() error {
 	return nil
 }
 
+// getTemplate returns the template set for a section, cloning and applying overrides if needed.
+func (r *Renderer) getTemplate(section string) (*template.Template, error) {
+	r.mu.RLock()
+	tmpl, ok := r.cache[section]
+	r.mu.RUnlock()
+	if ok {
+		return tmpl, nil
+	}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	// Double-check cache inside lock
+	if tmpl, ok := r.cache[section]; ok {
+		return tmpl, nil
+	}
+
+	// Start with a clone of the base template.
+	// Cloning is thread-safe and allows us to override definitions like "page.html"
+	// without affecting the base or other sections.
+	derived, err := r.base.Clone()
+	if err != nil {
+		return nil, fmt.Errorf("failed to clone base template: %w", err)
+	}
+
+	if section != "" {
+		// Look for overrides in TemplateDir/<section>/*.html.
+		// We use filepath.Join(r.TemplateDir, section) to match the content folder hierarchy.
+		sectionDir := filepath.Join(r.TemplateDir, section)
+		if info, err := os.Stat(sectionDir); err == nil && info.IsDir() {
+			pattern := filepath.Join(sectionDir, "*.html")
+			// ParseGlob on the clone will overwrite template definitions with the same name.
+			if _, err := derived.ParseGlob(pattern); err != nil {
+				return nil, fmt.Errorf("failed to parse overrides in %q: %w", sectionDir, err)
+			}
+		}
+	}
+
+	r.cache[section] = derived
+	return derived, nil
+}
+
 // Render implements core.Renderer.
 // It executes the "page.html" template and writes slug.html to OutputDir.
-// When c.Section is set the file is written to OutputDir/<section>/slug.html.
 func (r *Renderer) Render(_ context.Context, all []core.Content, c core.Content) error {
-	if r.tmpl == nil {
+	if r.base == nil {
 		return fmt.Errorf("html renderer: not initialised — call Init() first")
+	}
+
+	tmpl, err := r.getTemplate(c.Section)
+	if err != nil {
+		return fmt.Errorf("html renderer: get template for section %q: %w", c.Section, err)
 	}
 
 	// Determine the output subdirectory.
@@ -94,7 +144,7 @@ func (r *Renderer) Render(_ context.Context, all []core.Content, c core.Content)
 		Page:      c,
 	}
 
-	if err := r.tmpl.ExecuteTemplate(f, "page.html", data); err != nil {
+	if err := tmpl.ExecuteTemplate(f, "page.html", data); err != nil {
 		return fmt.Errorf("html renderer: execute template for %q: %w", c.Slug, err)
 	}
 	return nil
