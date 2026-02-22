@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,7 +22,7 @@ type FrontMatter struct {
 	Extra map[string]any `yaml:",inline"`
 }
 
-// Source is a DataSource that reads *.md files from a directory.
+// Source is a DataSource that reads *.md files recursively from a directory.
 type Source struct {
 	// Dir is the path to the directory containing Markdown files.
 	Dir string
@@ -36,40 +37,55 @@ func New(dir string) *Source {
 func (s *Source) Name() string { return "markdown" }
 
 // Fetch implements core.DataSource.
-// It walks Dir, parses each .md file, and returns a slice of core.Content.
+// It walks Dir and its subdirectories, parsing each .md file.
+// The Section is derived from the subdirectory path relative to Dir.
 func (s *Source) Fetch(_ context.Context) ([]core.Content, error) {
-	entries, err := os.ReadDir(s.Dir)
-	if err != nil {
-		return nil, fmt.Errorf("markdown source: read dir %q: %w", s.Dir, err)
-	}
-
 	var pages []core.Content
-	for _, e := range entries {
-		if e.IsDir() || !strings.HasSuffix(e.Name(), ".md") {
-			continue
+
+	err := filepath.WalkDir(s.Dir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
 		}
 
-		path := filepath.Join(s.Dir, e.Name())
+		// Skip directories themselves, and non-markdown files.
+		if d.IsDir() || !strings.HasSuffix(d.Name(), ".md") {
+			return nil
+		}
+
+		// Calculate the section based on relative path.
+		// Example: if Dir is "site/content" and file is "site/content/blog/post.md"
+		// relDir becomes "blog".
+		relPath, err := filepath.Rel(s.Dir, path)
+		if err != nil {
+			return fmt.Errorf("failed to get relative path for %q: %w", path, err)
+		}
+
+		relDir := filepath.Dir(relPath)
+		section := ""
+		if relDir != "." {
+			section = relDir
+		}
+
 		raw, err := os.ReadFile(path)
 		if err != nil {
-			return nil, fmt.Errorf("markdown source: read file %q: %w", path, err)
+			return fmt.Errorf("markdown source: read file %q: %w", path, err)
 		}
 
 		fm, body, err := parseFrontMatter(raw)
 		if err != nil {
-			return nil, fmt.Errorf("markdown source: parse front-matter in %q: %w", path, err)
+			return fmt.Errorf("markdown source: parse front-matter in %q: %w", path, err)
 		}
 
 		// Default slug to filename without extension.
 		slug := fm.Slug
 		if slug == "" {
-			slug = strings.TrimSuffix(e.Name(), ".md")
+			slug = strings.TrimSuffix(d.Name(), ".md")
 		}
 
 		// Render Markdown body to HTML.
 		var buf bytes.Buffer
 		if err := goldmark.Convert(body, &buf); err != nil {
-			return nil, fmt.Errorf("markdown source: render %q: %w", path, err)
+			return fmt.Errorf("markdown source: render %q: %w", path, err)
 		}
 
 		meta := make(map[string]any)
@@ -78,42 +94,44 @@ func (s *Source) Fetch(_ context.Context) ([]core.Content, error) {
 		}
 
 		pages = append(pages, core.Content{
-			Slug:  slug,
-			Title: fm.Title,
-			Body:  buf.String(),
-			Meta:  meta,
+			Slug:    slug,
+			Section: section,
+			Title:   fm.Title,
+			Body:    buf.String(),
+			Meta:    meta,
 		})
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("markdown source: walk dir %q: %w", s.Dir, err)
 	}
 
 	return pages, nil
 }
 
 // parseFrontMatter splits a raw Markdown file into its YAML front-matter and body.
-// Front-matter is delimited by leading and trailing "---" lines.
 func parseFrontMatter(raw []byte) (FrontMatter, []byte, error) {
 	var fm FrontMatter
 
-	// Files must start with "---\n"
 	if !bytes.HasPrefix(raw, []byte("---\n")) {
-		// No front-matter; treat entire file as body.
 		return fm, raw, nil
 	}
 
-	rest := raw[4:] // skip opening ---
+	rest := raw[4:]
 	idx := bytes.Index(rest, []byte("\n---"))
 	if idx == -1 {
 		return fm, raw, fmt.Errorf("unclosed front-matter block")
 	}
 
 	yamlBlock := rest[:idx]
-	body := rest[idx+4:] // skip closing ---
+	body := rest[idx+4:]
 
 	if err := yaml.Unmarshal(yamlBlock, &fm); err != nil {
 		return fm, body, err
 	}
 
-	// Trim leading newline from body
 	body = bytes.TrimPrefix(body, []byte("\n"))
-
 	return fm, body, nil
 }

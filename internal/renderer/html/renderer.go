@@ -65,12 +65,22 @@ func (r *Renderer) Init() error {
 
 // Render implements core.Renderer.
 // It executes the "page.html" template and writes slug.html to OutputDir.
+// When c.Section is set the file is written to OutputDir/<section>/slug.html.
 func (r *Renderer) Render(_ context.Context, c core.Content) error {
 	if r.tmpl == nil {
 		return fmt.Errorf("html renderer: not initialised — call Init() first")
 	}
 
-	outPath := filepath.Join(r.OutputDir, c.Slug+".html")
+	// Determine the output subdirectory.
+	outDir := r.OutputDir
+	if c.Section != "" {
+		outDir = filepath.Join(r.OutputDir, c.Section)
+		if err := os.MkdirAll(outDir, 0755); err != nil {
+			return fmt.Errorf("html renderer: create section dir %q: %w", outDir, err)
+		}
+	}
+
+	outPath := filepath.Join(outDir, c.Slug+".html")
 	f, err := os.Create(outPath)
 	if err != nil {
 		return fmt.Errorf("html renderer: create %q: %w", outPath, err)

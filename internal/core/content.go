@@ -10,6 +10,9 @@ import "context"
 type Content struct {
 	// Slug is the URL-safe identifier used as the output filename (e.g. "about").
 	Slug string
+	// Section is the URL path prefix derived from the subfolder name under pages/
+	// (e.g. "blog", "docs"). An empty string means the page lives at the root.
+	Section string
 	// Title is the human-readable page title.
 	Title string
 	// Body is the pre-rendered HTML body of the page.
