@@ -1,10 +1,56 @@
 {{template "layout.html" .}}
 
 {{define "content"}}
-<div class="blog-exclusive" style="border-left: 4px solid #7c3aed; padding-left: 1rem; margin-bottom: 2rem;">
-    <p style="text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.1em; color: #7c3aed; font-weight: bold;">
-        Blog Post</p>
-    <h1>{{.Page.Title}}</h1>
+
+{{if eq .Page.Slug "index"}}
+{{range .Pages}}
+{{if (and (eq .Section "blog") (ne .Slug "index"))}}
+<div class="blog-post">
+    <article class="post-preview">
+        <h2 style="margin-top: 0;"><a href="{{.Permalink}}"
+                style="text-decoration: none; color: #f8fafc;">{{.Title}}</a></h2>
+        <div class="prose" style="margin-bottom: 1rem;">
+            {{.Body | truncate 250 | safeHTML}}
+        </div>
+        <a href="{{.Permalink}}" style="color: #7c3aed; font-weight: bold; font-size: 0.9rem;">Read more →</a>
+    </article>
 </div>
-<div class="prose">{{.Page.Body | safeHTML}}</div>
+{{end}}
+{{end}}
+{{else}}
+<div class="blog-post">
+    <div class="blog-exclusive" style="border-left: 4px solid #7c3aed; padding-left: 1rem; margin-bottom: 2rem;">
+        <p
+            style="text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.1em; color: #7c3aed; font-weight: bold;">
+            Blog Post</p>
+    </div>
+    <div class="prose">{{.Page.Body | safeHTML}}</div>
+</div>
+{{end}}
+
+<!-- {{if eq .Page.Slug "index"}}
+<div class="blog-list" style="display: flex; flex-direction: column; gap: 3rem;">
+    {{range .Pages}}
+    {{if and (eq .Section "blog") (ne .Slug "index")}}
+    <article class="post-preview">
+        <h2 style="margin-top: 0;"><a href="{{.Permalink}}"
+                style="text-decoration: none; color: #f8fafc;">{{.Title}}</a></h2>
+        <div class="prose" style="margin-bottom: 1rem;">
+            {{.Body | truncate 250 | safeHTML}}
+        </div>
+        <a href="{{.Permalink}}" style="color: #7c3aed; font-weight: bold; font-size: 0.9rem;">Read more →</a>
+    </article>
+    {{end}}
+    {{end}}
+</div>
+{{else}}
+<div class="blog-post">
+    <div class="blog-exclusive" style="border-left: 4px solid #7c3aed; padding-left: 1rem; margin-bottom: 2rem;">
+        <p
+            style="text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.1em; color: #7c3aed; font-weight: bold;">
+            Blog Post</p>
+    </div>
+    <div class="prose">{{.Page.Body | safeHTML}}</div>
+</div>
+{{end}} -->
 {{end}}

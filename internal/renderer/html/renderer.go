@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/user/s4g/internal/core"
@@ -51,6 +52,17 @@ func (r *Renderer) Name() string { return "html" }
 // funcMap provides template helper functions.
 var funcMap = template.FuncMap{
 	"safeHTML": func(s string) template.HTML { return template.HTML(s) }, //nolint:gosec
+	"truncate": func(limit int, s string) string {
+		if len(s) <= limit {
+			return s
+		}
+		// Try to truncate at the nearest space to avoid cutting words in half
+		truncated := s[:limit]
+		if lastSpace := strings.LastIndexAny(truncated, " \t\n\r"); lastSpace > 0 {
+			truncated = truncated[:lastSpace]
+		}
+		return truncated + "..."
+	},
 }
 
 // Init parses the universal template files. Must be called once before Render.

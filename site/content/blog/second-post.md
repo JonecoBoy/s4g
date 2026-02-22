@@ -2,7 +2,7 @@
 title: Second Post
 slug: second-post
 ---
-# Second Post
+<!-- # Second Post -->
 
 Another article in the blog section.
 

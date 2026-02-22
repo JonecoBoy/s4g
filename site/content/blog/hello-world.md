@@ -2,7 +2,7 @@
 title: Hello, World!
 slug: hello-world
 ---
-# Hello, World!
+<!-- # Hello, World! -->
 
 This is the first post in the **blog** section.
 
