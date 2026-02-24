@@ -24,7 +24,6 @@ jobs:
           # this is a built-in strategy in release-please, see "Action Inputs"
           # for more options
           release-type: go
-          initial-version: 0.1.0
 
       # Checkout the code if a release was created to build the binaries
       - uses: actions/checkout@v4
