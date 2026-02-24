@@ -39,7 +39,7 @@ import (
     "encoding/json"
     "os"
     "path/filepath"
-    "github.com/user/s4g/internal/core"
+    "github.com/JonecoBoy/s4g/internal/core"
 )
 
 type Renderer struct {
@@ -75,7 +75,7 @@ package json
 
 import (
     "context"
-    "github.com/user/s4g/internal/core"
+    "github.com/JonecoBoy/s4g/internal/core"
 )
 
 type Source struct {

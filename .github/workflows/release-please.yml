@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: googleapis/release-please-action@v4
+        id: release
         with:
           # this assumes that you have created a personal access token
           # (PAT) and configured it as a GitHub action secret named
@@ -22,4 +23,29 @@ jobs:
           token: ${{ secrets.MY_RELEASE_PLEASE_TOKEN }}
           # this is a built-in strategy in release-please, see "Action Inputs"
           # for more options
-          release-type: simple
+          release-type: go
+          initial-version: 0.1.0
+
+      # Checkout the code if a release was created to build the binaries
+      - uses: actions/checkout@v4
+        if: ${{ steps.release.outputs.release_created }}
+        with:
+          fetch-depth: 0
+
+      # Setup Go environment
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        if: ${{ steps.release.outputs.release_created }}
+        with:
+          go-version: '1.25'
+
+      # Run GoReleaser to build and upload binaries to the release
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        if: ${{ steps.release.outputs.release_created }}
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_RELEASE_PLEASE_TOKEN }}

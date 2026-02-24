@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/user/s4g/internal/core"
+	"github.com/JonecoBoy/s4g/internal/core"
 	"github.com/yuin/goldmark"
 	"gopkg.in/yaml.v3"
 )

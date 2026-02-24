@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/user/s4g/internal/core"
+	"github.com/JonecoBoy/s4g/internal/core"
 )
 
 func TestRender(t *testing.T) {

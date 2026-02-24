@@ -7,7 +7,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/user/s4g/internal/core"
+	"github.com/JonecoBoy/s4g/internal/core"
 )
 
 // ---- styles ----------------------------------------------------------------

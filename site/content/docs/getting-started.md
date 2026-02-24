@@ -11,7 +11,7 @@ This page lives at `/docs/getting-started.html`.
 ## Installation
 
 ```bash
-go install github.com/user/s4g@latest
+go install github.com/JonecoBoy/s4g@latest
 ```
 
 ## Quick Start

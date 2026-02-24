@@ -1,4 +1,4 @@
-module github.com/user/s4g
+module github.com/JonecoBoy/s4g
 
 go 1.25.6
 

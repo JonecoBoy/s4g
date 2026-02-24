@@ -6,11 +6,11 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/user/s4g/internal/config"
-	"github.com/user/s4g/internal/core"
-	htmlrenderer "github.com/user/s4g/internal/renderer/html"
-	mdsource "github.com/user/s4g/internal/source/markdown"
-	"github.com/user/s4g/internal/tui"
+	"github.com/JonecoBoy/s4g/internal/config"
+	"github.com/JonecoBoy/s4g/internal/core"
+	htmlrenderer "github.com/JonecoBoy/s4g/internal/renderer/html"
+	mdsource "github.com/JonecoBoy/s4g/internal/source/markdown"
+	"github.com/JonecoBoy/s4g/internal/tui"
 )
 
 var cfgFile string

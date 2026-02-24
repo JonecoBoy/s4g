@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/user/s4g/internal/core"
+	"github.com/JonecoBoy/s4g/internal/core"
 )
 
 // TemplateData is the data passed into each template execution.
